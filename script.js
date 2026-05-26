@@ -1,24 +1,39 @@
 document.addEventListener("deviceready", onDeviceReady, false);
 
 function onDeviceReady() {
-    // 3.5 Seconds tak bantai ka splash screen chalne do
+    console.log("Beast Mode: Device Ready. Launching DeepSeek Portal...");
+    
+    // Splash screen timeout
     setTimeout(() => {
         const splashScreen = document.getElementById("splash-screen");
-        splashScreen.style.opacity = "0";
+        if(splashScreen) splashScreen.style.opacity = "0";
         
         setTimeout(() => {
-            // DeepSeek ko InAppBrowser ke secure container mein kholo
-            // location=no se upar ka browser URL bar gayab ho jayega
+            // Secure container configurations enhanced
             let deepseekWindow = cordova.InAppBrowser.open(
                 'https://chat.deepseek.com/', 
                 '_blank', 
-                'location=no,zoom=no,hardwareback=yes,toolbar=no'
+                'location=no,zoom=no,hardwareback=yes,toolbar=no,clearcache=no,clearsessioncache=no'
             );
             
-            // 🔥 ENGINE TRIGGER: Jaise hi DeepSeek load hoga, inject.js fire ho jayegi
-            deepseekWindow.addEventListener('loadstop', () => {
-                deepseekWindow.executeScript({ file: "inject.js" });
-                console.log("Beast Mode: Injected core logic script into DeepSeek!");
+            // 🔥 ADVANCED MONITOR: Jaise hi load stop ho, script inject karo
+            deepseekWindow.addEventListener('loadstop', function() {
+                console.log("Beast Mode: DeepSeek Web Page Loaded Stop, Injecting Script...");
+                
+                // Direct code string injection for high privilege access
+                deepseekWindow.executeScript({
+                    code: `
+                        console.log("Script string executing inside webview...");
+                        var script = document.createElement('script');
+                        script.src = 'inject.js'; // local script fetch backup
+                        document.head.appendChild(script);
+                    `
+                });
+                
+                // Main execution file loading injection
+                deepseekWindow.executeScript({ file: "inject.js" }, function(result) {
+                    console.log("Beast Mode: inject.js execution callback triggered!");
+                });
             });
 
         }, 800); 
