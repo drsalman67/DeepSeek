@@ -1,0 +1,59 @@
+name: Build DeepSeek Synergy APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Cordova & InAppBrowser Plugin
+        run: |
+          npm install -g cordova
+
+      - name: Create Cordova Project & Add Whitelist Bypass
+        run: |
+          cordova create deepseek_app com.drsalman67.deepseek DeepSeekSynergy
+          cd deepseek_app
+          cordova platform add android
+
+          # InAppBrowser Plugin dalna mandatory hai inject.js execute karne ke liye
+          cordova plugin add cordova-plugin-inappbrowser
+
+          # External Website Navigation ko inside-app allow karne ke liye settings inject karna
+          sed -i 's/<\/widget>/    <allow-navigation href="*" \/>\n<\/widget>/' config.xml
+
+          # Apni code files ko Cordova layout folder mein clean push karna
+          rm -rf www/*
+          cp -r ../index.html ../style.css ../script.js ../inject.js www/
+
+      - name: Build Android APK
+        run: |
+          cd deepseek_app
+          cordova build android --debug
+
+      - name: Upload Finished APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepSeek-Synergy-APK
+          path: deepseek_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+
